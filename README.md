@@ -2,7 +2,24 @@
 
 > Disclaimer: this repository is an OpenCode-optimized port of Feynman's skills, subagents, commands, and related workflow patterns. It is a compatibility-oriented adaptation for OpenCode, not the upstream Feynman project itself.
 
-This repository contains an OpenCode configuration port for Feynman-style research workflows. Source lives primarily under `.opencode/agents/`, `.opencode/commands/`, and `.opencode/skills/`.
+This repository contains an OpenCode configuration port for Feynman-style research workflows. It packages reusable agents, commands, and skills for research-heavy OpenCode sessions.
+
+Source lives primarily under `.opencode/agents/`, `.opencode/commands/`, and `.opencode/skills/`.
+
+## Quick Start
+
+1. Clone this repository into a location accessible to OpenCode.
+2. Start OpenCode with `OPENCODE_ENABLE_EXA=1` enabled.
+3. Verify the `researcher` agent resolves `websearch` support.
+4. Use the commands under `.opencode/commands/` from your OpenCode session.
+
+```bash
+export OPENCODE_ENABLE_EXA=1
+opencode
+opencode debug agent researcher
+```
+
+The resolved `researcher` agent should include `websearch: true`.
 
 ## What This Repo Contains
 
@@ -10,6 +27,13 @@ This repository contains an OpenCode configuration port for Feynman-style resear
 - OpenCode commands under `.opencode/commands/`
 - OpenCode skills under `.opencode/skills/`
 - Repo-specific contribution guidance in `AGENTS.md`
+
+## Included Workflows
+
+- Research and literature review workflows such as `/deepresearch`, `/literature-review`, and `/source-comparison`
+- Audit, replication, and review workflows such as `/paper-code-audit`, `/replication`, and `/peer-review`
+- Support workflows such as `/summarize`, `/session-search`, `/session-log`, `/jobs`, and `/watch`
+- Optional compute-oriented workflows for Docker, Modal, and RunPod environments
 
 ## Porting Map
 
@@ -21,22 +45,20 @@ This repo is a configuration and workflow port, not an application or general-pu
 
 ## Operational Requirements
 
-Set `OPENCODE_ENABLE_EXA=1` when starting OpenCode:
+Research workflows such as `/deepresearch` depend on OpenCode's native `websearch` tool for source discovery.
 
-```bash
-export OPENCODE_ENABLE_EXA=1
-opencode
+If `websearch` is unavailable, workflows can still fetch known URLs with `webfetch`, but general source discovery will be degraded or blocked.
+
+## Repository Layout
+
+```text
+.opencode/
+  agents/      OpenCode subagents used by command workflows
+  commands/    User-facing slash commands
+  skills/      Reusable local skill implementations
+docs/          Supporting repository documentation
+AGENTS.md      Repo-specific contributor and agent guidance
 ```
-
-This enables OpenCode's native `websearch` tool. Research workflows such as `/deepresearch` depend on `websearch` for source discovery; without it, they can still fetch known URLs with `webfetch`, but general research will be degraded or blocked.
-
-Verify availability with:
-
-```bash
-opencode debug agent researcher
-```
-
-The resolved agent tools should include `websearch: true`.
 
 ## Tool Inventory
 
