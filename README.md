@@ -8,18 +8,42 @@ Source lives primarily under `.opencode/agents/`, `.opencode/commands/`, and `.o
 
 ## Quick Start
 
-1. Clone this repository into a location accessible to OpenCode.
-2. Start OpenCode with `OPENCODE_ENABLE_EXA=1` enabled.
-3. Verify the `researcher` agent resolves `websearch` support.
-4. Use the commands under `.opencode/commands/` from your OpenCode session.
+This repo is meant to be used from inside an OpenCode workspace. A good first run looks like this:
+
+1. Clone the repository.
+2. Open a shell in the repo.
+3. Start OpenCode with `OPENCODE_ENABLE_EXA=1` enabled so research commands can use `websearch`.
+4. Verify that the bundled `researcher` agent resolves `websearch` support.
+5. Start with one of the included slash commands such as `/deepresearch`, `/literature-review`, or `/eli5`.
 
 ```bash
+git clone https://github.com/<your-org-or-user>/feynman-opencode.git
+cd feynman-opencode
 export OPENCODE_ENABLE_EXA=1
 opencode
+```
+
+In a second shell, or before opening a session, verify the agent setup with:
+
+```bash
 opencode debug agent researcher
 ```
 
 The resolved `researcher` agent should include `websearch: true`.
+
+Once OpenCode is running in this repo, try one of these:
+
+```text
+/deepresearch mechanistic interpretability
+/literature-review retrieval augmented generation evaluation
+/eli5 diffusion models
+```
+
+Expected behavior:
+
+- research-heavy commands write output files to `outputs/`
+- many workflows also write a matching `.provenance.md` sidecar
+- if optional external tools are missing, commands should degrade explicitly rather than fail silently
 
 ## What This Repo Contains
 
