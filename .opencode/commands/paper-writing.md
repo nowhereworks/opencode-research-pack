@@ -5,7 +5,7 @@ description: Turn research findings into a polished paper-style draft with secti
 
 # Paper Writing
 
-Run the `/draft` workflow. The slash command expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Invoke the `draft` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
 
 Agents used: `writer`, `verifier`
 

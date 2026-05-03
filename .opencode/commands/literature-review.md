@@ -5,7 +5,7 @@ description: Run a literature review using paper search and primary-source synth
 
 # Literature Review
 
-Run the `/lit` workflow. The slash command expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Invoke the `lit` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
 
 Agents used: `researcher`, `verifier`, `reviewer`
 
