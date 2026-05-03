@@ -11,6 +11,6 @@ User arguments: `$ARGUMENTS`
 
 After the skill loads, execute its workflow using the user arguments. If no source was provided, ask one concise question for the URL or file path before proceeding.
 
-Agents used: `researcher` for large chunked sources.
+Agents used: `researcher` for large chunked sources when delegation is available; otherwise sequential chunk processing.
 
 Output: summary in `outputs/` with raw and intermediate notes in `outputs/.notes/`.

@@ -11,6 +11,6 @@ User arguments: `$ARGUMENTS`
 
 After the skill loads, execute its workflow using the user arguments. If no topic or sources were provided, ask one concise question for the comparison target before proceeding.
 
-Agents used: `researcher`, `verifier`
+Agents used: `researcher`, `verifier` when delegation is available and useful; otherwise lead-owned degraded mode.
 
 Output: comparison matrix in `outputs/`.

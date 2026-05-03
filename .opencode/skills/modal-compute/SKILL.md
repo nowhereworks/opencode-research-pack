@@ -39,4 +39,5 @@ def main():
 ## Output
 
 - Write any generated Modal script to disk before running it.
+- Prefer `outputs/modal/<slug>.py` for generated Modal scripts, and create `outputs/modal` before writing.
 - Report the exact `modal run`, `modal deploy`, or blocked setup step.

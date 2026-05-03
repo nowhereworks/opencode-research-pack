@@ -17,4 +17,5 @@ Write a session log for the current research work.
 - List open questions, unresolved risks, and concrete next steps.
 - Reference any important artifacts written to `notes/`, `outputs/`, `experiments/`, or `papers/`.
 - If any external claims matter, include direct source URLs.
-- Save the log to `notes/session-logs/` as Markdown with a date-oriented filename.
+- Create `notes/session-logs` before writing.
+- Save the log to `notes/session-logs/` as Markdown with a date-oriented filename. If a same-date filename already exists, add a short topic or timestamp suffix instead of overwriting.

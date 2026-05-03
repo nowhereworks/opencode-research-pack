@@ -35,4 +35,4 @@ runpodctl remove pod <id>
 ## Output
 
 - Report pod IDs, connection details, and cleanup state when available.
-- Save run scripts and notes to disk for reproducibility.
+- Save run scripts and notes under `outputs/runpod/<slug>/` for reproducibility, and create that directory before writing.

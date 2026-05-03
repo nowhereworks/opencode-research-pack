@@ -11,6 +11,6 @@ User arguments: `$ARGUMENTS`
 
 After the skill loads, execute its workflow using the user arguments. If no topic or source material was provided, ask one concise question for the draft target before proceeding.
 
-Agents used: `writer`, `verifier`
+Agents used: `writer`, `verifier` when delegation is available and useful; otherwise lead-owned degraded mode.
 
 Output: paper draft in `papers/`.

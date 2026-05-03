@@ -1,6 +1,6 @@
 ---
 name: contributing
-description: Contribute changes to the Feynman repository itself. Use when the task is to add features, fix bugs, update prompts or skills, change install or release behavior, improve docs, or prepare a focused PR against this repo.
+description: Contribute changes to this OpenCode configuration port. Use when the task is to add features, fix bugs, update commands, agents, skills, docs, config, or prepare a focused PR against this repo.
 ---
 
 # Contributing

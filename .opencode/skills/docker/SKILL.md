@@ -18,6 +18,7 @@ Run or plan containerized work for the user's objective.
 - If Docker is unavailable or inaccessible, explain the missing dependency and provide a manual container plan instead of pretending the work ran.
 - Ask before running untrusted code, installing packages, training models, or starting long-running jobs.
 - Mount only the needed workspace paths and keep outputs under project directories such as `outputs/`, `experiments/`, or `results/`.
+- Create host output directories before mounting or writing to them, especially `results`, to avoid Docker creating unexpected ownership or paths.
 - Prefer `--rm` for one-shot containers and named containers only when persistence is needed.
 
 ## Common Patterns

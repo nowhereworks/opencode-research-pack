@@ -11,6 +11,6 @@ User arguments: `$ARGUMENTS`
 
 After the skill loads, execute its workflow using the user arguments. If no artifact was provided, ask one concise question for the artifact to review before proceeding.
 
-Agents used: `researcher`, `reviewer`
+Agents used: `researcher`, `reviewer` when delegation is available and useful; otherwise lead-owned review.
 
 Output: structured review in `outputs/`.

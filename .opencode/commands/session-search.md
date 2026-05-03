@@ -1,6 +1,6 @@
 ---
 name: session-search
-description: Search past Feynman session transcripts to recover prior work, conversations, and research context. Use when the user references something from a previous session, asks "what did we do before", or when you suspect relevant past context exists.
+description: Search past OpenCode sessions and exports to recover prior work, conversations, and research context. Use when the user references something from a previous session, asks "what did we do before", or when you suspect relevant past context exists.
 ---
 
 # Session Search

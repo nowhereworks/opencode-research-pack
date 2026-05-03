@@ -23,5 +23,5 @@ Preview the user's artifact using available tools.
 ## Output
 
 - For browser or app previews, report the command used.
-- For exports, write generated files next to the source or under `outputs/` and report the path.
+- For exports, write generated files next to the source or under `outputs/` and report the path. Create `outputs` before writing there, and avoid overwriting an existing export unless the user confirms.
 - If blocked, include the missing command and a concrete install or fallback suggestion.

@@ -11,11 +11,11 @@ metadata:
 
 Start an autoresearch optimization loop for the user's idea.
 
-This workflow depends on external pi-autoresearch tooling. Before relying on `init_experiment`, `run_experiment`, or `log_experiment`, check whether the corresponding tools or CLI commands are available. If they are unavailable, explain the missing dependency and produce a manual experiment-loop plan instead of pretending the loop is running.
+This workflow depends on external pi-autoresearch tooling. Before relying on `init_experiment`, `run_experiment`, or `log_experiment`, check whether the corresponding tools or CLI commands are available. If they are unavailable, explain the missing dependency, produce a manual experiment-loop plan, and stop unless the user explicitly asks to run a manual loop without pi-autoresearch.
 
 ## Step 1: Gather
 
-If `autoresearch.md` and `autoresearch.jsonl` already exist, ask the user if they want to resume or start fresh.
+If any of `autoresearch.md`, `autoresearch.sh`, or `autoresearch.jsonl` already exist, ask the user if they want to resume or start fresh.
 If `CHANGELOG.md` exists, read the most recent relevant entries before resuming.
 
 Otherwise, collect the following from the user before doing anything else:
@@ -37,6 +37,8 @@ Ask the user where to run:
 - Modal: run on Modal's serverless GPU infrastructure with `modal run`; best for GPU-heavy benchmarks with no persistent state between iterations; requires `modal`
 - RunPod: provision a GPU pod via `runpodctl` and run iterations over SSH; best for persistent state, large datasets, or SSH access; requires `runpodctl`
 
+Before executing a Docker, Modal, or RunPod environment choice, check the corresponding runtime prerequisites such as `command -v docker`, `command -v modal`, `command -v runpodctl`, and any required authentication or daemon access. If the chosen environment is unavailable, stop and ask the user whether to switch environments or continue with a manual plan.
+
 Do not proceed without a clear answer.
 
 ## Step 3: Confirm
@@ -55,13 +57,17 @@ Ask the user to confirm. Do not start the loop without explicit approval.
 
 ## Step 4: Run
 
-Initialize the session: create `autoresearch.md` and `autoresearch.sh`, run the baseline, and start looping.
+Before editing, inspect git status. If the worktree has unrelated user changes, do not overwrite or revert them; ask how to isolate the experiment or use a new branch. Do not create commits unless the user explicitly confirmed commits as part of the experiment plan.
 
-Each iteration: edit, commit, run the benchmark, log the experiment, keep or revert based on the metric, repeat. Do not stop unless interrupted or `maxIterations` is reached.
+Initialize the session: create `autoresearch.md` and `autoresearch.sh`, run the baseline, and start looping only after required pi-autoresearch tools are available or the user explicitly approved a manual loop.
+
+Each iteration: edit only files in scope, run the benchmark, log the experiment, keep or discard the change based on the metric, repeat. Use `log_experiment` for commit handling when available and explicitly approved. Never run destructive git commands such as hard reset or checkout-based reverts without explicit user approval; if a change must be discarded, use a safe patch reversal limited to files changed in the current iteration. Stop on benchmark failure, ambiguous metric parsing, dirty-worktree conflict, missing tooling, or `maxIterations`.
 
 After the baseline and after meaningful iteration milestones, append a concise entry to `CHANGELOG.md` summarizing what changed, what metric result was observed, what failed, and the next step.
 
 ## Key Tools
+
+Use these only after confirming the corresponding pi-autoresearch tooling is installed:
 
 - `init_experiment`: one-time session config with name, metric, unit, and direction
 - `run_experiment`: run the benchmark command, capture output, and record wall-clock time

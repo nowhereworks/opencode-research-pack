@@ -13,6 +13,8 @@ Summarize the user's source.
 
 Derive a short slug from the source filename or URL domain: lowercase, hyphens, no filler words, at most 5 words. Use this slug for all files in this run.
 
+Before writing artifacts, create `outputs/.notes` and `outputs`.
+
 ## Why This Uses RLM
 
 Standard summarization injects the full document into context. Above about 15k tokens, early content degrades as the window fills. This workflow keeps the document on disk as an external variable and reads only bounded windows, so context pressure is proportional to the window size, not the document size.
@@ -39,8 +41,8 @@ Rules:
 Run all guards before any tier logic. A failure here is cheap; a failure mid-Tier-3 is not.
 
 - GitHub repo URL (`https://github.com/owner/repo`, exactly 4 slashes): fetch the raw README instead. Try `https://raw.githubusercontent.com/{owner}/{repo}/main/README.md`, then `/master/README.md`. A repo HTML page is not the document the user wants to summarize.
-- Remote URL: fetch to disk with a shell command such as `curl -sL -o outputs/.notes/<slug>-raw.txt <url>`. Do not use a fetch tool that returns the full document into context, because that bypasses the RLM external-variable principle.
-- Local file or PDF: copy or extract to `outputs/.notes/<slug>-raw.txt`. For PDFs, extract text via `pdftotext` or equivalent before measuring.
+- Remote URL: fetch to disk with a shell command such as `curl -sL -o outputs/.notes/<slug>-raw.txt <url>`. Check `command -v curl` before relying on it. Do not use a fetch tool that returns the full document into context, because that bypasses the RLM external-variable principle. If `curl` is unavailable and the source is small enough to safely fetch into context, use available fetch tools and write the fetched text to disk; otherwise stop with a blocked fetch step.
+- Local file or PDF: copy or extract to `outputs/.notes/<slug>-raw.txt`. For PDFs, check `command -v pdftotext` before relying on it; if unavailable, use an equivalent available extractor or stop with a blocked PDF extraction step.
 - Empty or failed fetch: if the file is less than 50 bytes after fetching, stop and surface the error to the user. Do not proceed to tier selection.
 - Binary content: if the file is larger than 1 KB but contains fewer than 100 readable text characters, stop and tell the user the content appears binary or unextracted.
 - Existing output: if `outputs/<slug>-summary.md` already exists, ask the user whether to overwrite or use a different slug. Do not proceed until confirmed.
@@ -87,7 +89,7 @@ Create `outputs/.notes/<slug>-chunk-NNN.txt` files with zero-padded indexes so f
 
 Briefly summarize: `Source is ~<chars> chars -> <N> chunks -> <N> researcher agents. This may take several minutes.` Then continue automatically. Do not ask for confirmation or wait for a proceed response unless the user explicitly requested review before launching.
 
-Use the task tool with subagent_type `researcher` for each chunk. Ask each researcher to read only its assigned `outputs/.notes/<slug>-chunk-NNN.txt`, extract key claims, methodology or technical approach, and cited evidence, avoid external search/fetch, mark boundary-partial claims, and write to `outputs/.notes/<slug>-summary-chunk-NNN.md`.
+Use the task tool with subagent_type `researcher` for each chunk. Ask each researcher to read only its assigned `outputs/.notes/<slug>-chunk-NNN.txt`, extract key claims, methodology or technical approach, and cited evidence, avoid external search/fetch, mark boundary-partial claims, and write to `outputs/.notes/<slug>-summary-chunk-NNN.md`. If the task tool or researcher agent is unavailable or fails to dispatch, process chunks sequentially yourself with the same per-chunk output files and record the degraded mode in the final Coverage gaps section.
 
 ### Aggregate
 

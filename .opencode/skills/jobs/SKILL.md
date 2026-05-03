@@ -13,7 +13,8 @@ Inspect active background work for this project.
 ## Requirements
 
 - Inspect running and finished managed background processes using available OpenCode process tooling, if present.
-- If external `pi-processes` is installed, use it to list managed background processes.
-- If external `pi-schedule-prompt` is installed, use it to list active recurring or deferred jobs.
+- Check `command -v pi-processes`; if installed, use it to list managed background processes.
+- Check `command -v pi-schedule-prompt`; if installed, use it to list active recurring or deferred jobs.
+- If no OpenCode or external process tooling is available, report that process inspection is blocked and list the exact missing commands checked.
 - Summarize active background processes, queued or recurring research watches, failures that need attention, and the next concrete command the user should run if they want logs or detailed status.
 - Be concise and operational.

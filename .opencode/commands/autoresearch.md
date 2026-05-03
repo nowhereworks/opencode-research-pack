@@ -1,6 +1,6 @@
 ---
 name: autoresearch
-description: Autonomous experiment loop that tries ideas, measures results, keeps what works, and discards what doesn't. Use when the user asks to optimize a metric, run an experiment loop, improve performance iteratively, or automate benchmarking.
+description: Assisted experiment loop that tries ideas, measures results, and keeps the best validated changes when tooling and user approvals allow. Use when the user asks to optimize a metric, run an experiment loop, improve performance iteratively, or automate benchmarking.
 ---
 
 # Autoresearch

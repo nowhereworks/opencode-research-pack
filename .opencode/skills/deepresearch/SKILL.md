@@ -11,19 +11,24 @@ metadata:
 
 Run deep research for the user's topic.
 
-This is an execution request, not a request to explain or implement the workflow instructions. Execute the workflow. Do not answer by describing the protocol, do not explain these instructions, and do not restate the protocol. First actions should create directories and write the plan artifact.
+This is an execution request, not a request to explain or implement the workflow instructions. Execute the workflow. Do not answer by describing the protocol, do not explain these instructions, and do not restate the protocol. First actions should create `outputs/.plans`, `outputs/.drafts`, `outputs`, and `papers`, then write the plan artifact.
 
-## Required Artifacts
+## Artifact Contract
 
 Derive a short slug from the topic: lowercase, hyphenated, no filler words, at most 5 words.
 
-Every run must leave these files on disk:
+Before plan approval, the only required artifact is:
 
 - `outputs/.plans/<slug>.md`
+
+After the user approves the plan, the run must leave these files on disk, even if some capabilities fail:
+
 - `outputs/.drafts/<slug>-draft.md`
 - `outputs/.drafts/<slug>-cited.md`
 - `outputs/<slug>.md` or `papers/<slug>.md`
 - `outputs/<slug>.provenance.md` or `papers/<slug>.provenance.md`
+
+If the user does not approve the plan, do not create placeholder draft, cited, final, or provenance files.
 
 After the user approves the plan, if any capability fails, continue in degraded mode and still write a blocked or partial final output and provenance sidecar. Never end with chat-only output after plan approval. Never end with only an explanation in chat after plan approval. Use `Verification: BLOCKED` when verification could not be completed.
 
@@ -81,14 +86,16 @@ If direct search was chosen:
 If researcher agents were chosen:
 
 - Write a per-researcher brief first, such as `outputs/.plans/<slug>-T1.md`.
+- Assign a unique research output path per researcher, such as `outputs/.drafts/<slug>-research-T1.md`.
 - Keep `task` tool prompts concise and valid.
 - Do not name exact tool commands in researcher tasks unless those tool names are visible in the current tool set.
 - Prefer broad guidance such as "use paper search and web search"; if a PDF parser or paper fetch fails, the researcher must continue from metadata, abstracts, and web sources and mark PDF parsing as blocked.
+- If the task tool or researcher agent is unavailable or fails, continue lead-owned with available search/fetch tools, record the degraded mode in the plan ledger, and proceed with a blocked or partial draft.
 
 Example task shape:
 
 ```text
-Use the task tool with subagent_type "researcher". Prompt the agent to read outputs/.plans/<slug>-T1.md and write outputs/.drafts/<slug>-research-web.md. Ask it to return only a one-line completion summary.
+Use the task tool with subagent_type "researcher". Prompt the agent to read outputs/.plans/<slug>-T1.md and write outputs/.drafts/<slug>-research-T1.md. Ask it to return only a one-line completion summary.
 ```
 
 After evidence gathering, update the plan ledger and verification log. If research failed, record exactly what failed and proceed with a blocked or partial draft.
@@ -122,7 +129,7 @@ If direct search/no researcher agents was chosen:
 - Copy or rewrite `outputs/.drafts/<slug>-draft.md` to `outputs/.drafts/<slug>-cited.md` with inline citations and a Sources section.
 - Do not spawn the `verifier` agent for simple direct-search runs.
 
-If researcher agents were used, run the `verifier` agent after the draft exists. This step is mandatory and must complete before any reviewer runs. Do not run the `verifier` and `reviewer` in the same parallel task call.
+If researcher agents were used, run the `verifier` agent after the draft exists. This step is mandatory when the task tool and verifier agent are available, and must complete before any reviewer runs. Do not run the `verifier` and `reviewer` in the same parallel task call. If the task tool or verifier agent is unavailable or fails, do citation yourself with available search/fetch tools, write `outputs/.drafts/<slug>-cited.md`, and mark verification as `BLOCKED` or `PASS WITH NOTES`.
 
 Use the task tool with subagent_type `verifier`. Ask the agent to add inline citations to `outputs/.drafts/<slug>-draft.md` using the research files as source material, verify every URL, and write the complete cited brief to `outputs/.drafts/<slug>-cited.md`.
 
@@ -137,7 +144,7 @@ If direct search/no researcher agents was chosen:
 - Fix FATAL issues before delivery.
 - Do not spawn the `reviewer` agent for simple direct-search runs.
 
-If researcher agents were used, only after `outputs/.drafts/<slug>-cited.md` exists, run the `reviewer` agent against it.
+If researcher agents were used, only after `outputs/.drafts/<slug>-cited.md` exists, run the `reviewer` agent against it when the task tool and reviewer agent are available. If the task tool or reviewer agent is unavailable or fails, review the cited draft yourself and record the limitation in `outputs/.drafts/<slug>-verification.md`.
 
 Use the task tool with subagent_type `reviewer`. Ask the agent to verify `outputs/.drafts/<slug>-cited.md`, flag unsupported claims, logical gaps, single-source critical claims, and overstated confidence, then write `outputs/.drafts/<slug>-verification.md`.
 
