@@ -1,6 +1,23 @@
 # Feynman OpenCode Configuration
 
+> Disclaimer: this repository is an OpenCode-optimized port of Feynman's skills, subagents, commands, and related workflow patterns. It is a compatibility-oriented adaptation for OpenCode, not the upstream Feynman project itself.
+
 This repository contains an OpenCode configuration port for Feynman-style research workflows. Source lives primarily under `.opencode/agents/`, `.opencode/commands/`, and `.opencode/skills/`.
+
+## What This Repo Contains
+
+- OpenCode agents under `.opencode/agents/`
+- OpenCode commands under `.opencode/commands/`
+- OpenCode skills under `.opencode/skills/`
+- Repo-specific contribution guidance in `AGENTS.md`
+
+## Porting Map
+
+- Feynman `agents` -> OpenCode agents
+- Feynman `prompts` -> OpenCode skills
+- Feynman `skills` -> OpenCode commands
+
+This repo is a configuration and workflow port, not an application or general-purpose library.
 
 ## Operational Requirements
 
