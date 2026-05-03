@@ -1,6 +1,6 @@
 # Feynman OpenCode Configuration
 
-> Disclaimer: this repository is an OpenCode-optimized port of Feynman's skills, subagents, commands, and related workflow patterns. It is a compatibility-oriented adaptation for OpenCode, not the upstream Feynman project itself.
+> Attribution: this repository is an independent OpenCode-optimized port of workflows and related assets from [Feynman](https://feynman.is), the open source AI research agent by Companion. See the upstream project at [getcompanion-ai/feynman](https://github.com/getcompanion-ai/feynman). This repository is not the official upstream Feynman project.
 
 This repository contains an OpenCode configuration port for Feynman-style research workflows. It packages reusable agents, commands, and skills for research-heavy OpenCode sessions.
 
@@ -42,6 +42,17 @@ The resolved `researcher` agent should include `websearch: true`.
 - Feynman `skills` -> OpenCode commands
 
 This repo is a configuration and workflow port, not an application or general-purpose library.
+
+## Attribution
+
+This repository is an independent OpenCode-focused port of workflows, commands, skills, and agent patterns inspired by and adapted from [Feynman](https://feynman.is).
+
+Upstream project:
+
+- Website: `https://feynman.is`
+- Source: `https://github.com/getcompanion-ai/feynman`
+
+This repository is not the upstream Feynman project. It repackages and adapts selected Feynman concepts and workflow structures for OpenCode.
 
 ## Operational Requirements
 

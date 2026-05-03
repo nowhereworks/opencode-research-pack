@@ -31,3 +31,4 @@ Thanks for contributing.
 - Keep changes narrowly scoped.
 - Explain the user-visible behavior change and any repo-structure implications.
 - Mention any external tooling assumptions or degraded-mode fallbacks introduced by the change.
+- When adapting upstream Feynman material, preserve attribution and license context.
