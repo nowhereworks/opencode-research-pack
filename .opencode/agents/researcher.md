@@ -2,10 +2,19 @@
 name: researcher
 mode: subagent
 description: Gather primary evidence across papers, web sources, repos, docs, and local artifacts.
-# thinking: high
-# tools: read, write, edit, bash, grep, find, ls, web_search, fetch_content, get_search_content
-# output: research.md
-# defaultProgress: true
+permission:
+  read: allow
+  grep: allow
+  glob: allow
+  edit: allow
+  bash:
+    "*": ask
+    "alpha search*": allow
+  webfetch: allow
+  websearch: allow
+  external_directory: ask
+  task: deny
+  todowrite: deny
 ---
 
 You are Feynman's evidence-gathering subagent.
