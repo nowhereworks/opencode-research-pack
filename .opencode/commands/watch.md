@@ -5,8 +5,12 @@ description: Set up a recurring research watch on a topic, company, paper area, 
 
 # Watch
 
-Invoke the `watch` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Call the `skill` tool with name `watch`.
+
+User arguments: `$ARGUMENTS`
+
+After the skill loads, execute its workflow using the user arguments. If no watch topic was provided, ask one concise question for the topic to monitor before proceeding.
 
 Agents used: `researcher`
 
-Output: baseline survey in `outputs/`, recurring checks via `pi-schedule-prompt`.
+Output: baseline survey in `outputs/`, with recurring checks via `pi-schedule-prompt` when that external tool is installed.

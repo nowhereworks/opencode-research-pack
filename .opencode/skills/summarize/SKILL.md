@@ -1,6 +1,6 @@
 ---
 name: summarize
-description: Summarize any URL, local file, or PDF using the RLM pattern: source stored on disk, never injected raw into context.
+description: "Summarize any URL, local file, or PDF using the RLM pattern: source stored on disk, never injected raw into context."
 compatibility: opencode
 metadata:
   args: <source> [--window-size <chars>] [--overlap <chars>] [--tier1-threshold <chars>] [--tier2-threshold <chars>]

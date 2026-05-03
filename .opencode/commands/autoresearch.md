@@ -5,8 +5,12 @@ description: Autonomous experiment loop that tries ideas, measures results, keep
 
 # Autoresearch
 
-Invoke the `autoresearch` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Call the `skill` tool with name `autoresearch`.
 
-Tools used: `init_experiment`, `run_experiment`, `log_experiment` (from pi-autoresearch)
+User arguments: `$ARGUMENTS`
+
+After the skill loads, execute its workflow using the user arguments. If no idea was provided, ask one concise question for the optimization idea before proceeding.
+
+Tools used when available: `init_experiment`, `run_experiment`, `log_experiment` from pi-autoresearch.
 
 Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`

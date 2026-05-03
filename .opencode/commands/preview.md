@@ -5,23 +5,8 @@ description: Preview Markdown, LaTeX, PDF, or code artifacts in the browser or a
 
 # Preview
 
-Use the `/preview` command to render and open artifacts.
+Call the `skill` tool with name `preview`.
 
-## Commands
+User arguments: `$ARGUMENTS`
 
-| Command | Description |
-|---------|-------------|
-| `/preview` | Preview the most recent artifact in the browser |
-| `/preview --file <path>` | Preview a specific file |
-| `/preview-browser` | Force browser preview |
-| `/preview-pdf` | Export to PDF via pandoc + LaTeX |
-| `/preview-clear-cache` | Clear rendered preview cache |
-
-## Fallback
-
-If the preview commands are not available, use bash:
-
-```bash
-open <file.md>          # macOS — opens in default app
-open <file.pdf>         # macOS — opens in Preview
-```
+After the skill loads, execute its workflow using the user arguments. If no file was provided, inspect likely recent artifacts and ask one concise question only if no candidate is clear.

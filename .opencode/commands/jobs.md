@@ -5,6 +5,10 @@ description: Inspect active background research work including running processes
 
 # Jobs
 
-Invoke the `jobs` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Call the `skill` tool with name `jobs`.
 
-Shows active `pi-processes`, scheduled `pi-schedule-prompt` entries, and running subagent tasks.
+User arguments: `$ARGUMENTS`
+
+After the skill loads, execute its workflow using the user arguments.
+
+Shows active `pi-processes`, scheduled `pi-schedule-prompt` entries, and running subagent tasks when those process or scheduling tools are available.

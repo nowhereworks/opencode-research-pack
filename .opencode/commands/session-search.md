@@ -5,22 +5,8 @@ description: Search past Feynman session transcripts to recover prior work, conv
 
 # Session Search
 
-Use the `/search` command to search prior Feynman sessions interactively, or search session JSONL files directly via bash.
+Call the `skill` tool with name `session-search`.
 
-## Interactive search
+User arguments: `$ARGUMENTS`
 
-```
-/search <query>
-```
-
-Opens the session search UI. Supports `resume <sessionPath>` to continue a found session.
-
-## Direct file search
-
-Session transcripts are stored as JSONL files in `~/.feynman/sessions/`. Each line is a JSON record with `type` (session, message, model_change) and `message.content` fields.
-
-```bash
-grep -ril "scaling laws" ~/.feynman/sessions/
-```
-
-For structured search across sessions, use the interactive `/search` command.
+After the skill loads, execute its workflow using the user arguments. If no query was provided, ask one concise question for the session-search query before proceeding.

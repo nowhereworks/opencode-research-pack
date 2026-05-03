@@ -5,7 +5,11 @@ description: Summarize any URL, local file, or PDF using the RLM pattern. Use wh
 
 # Summarize
 
-Invoke the `summarize` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Call the `skill` tool with name `summarize`.
+
+User arguments: `$ARGUMENTS`
+
+After the skill loads, execute its workflow using the user arguments. If no source was provided, ask one concise question for the URL or file path before proceeding.
 
 Agents used: `researcher` for large chunked sources.
 

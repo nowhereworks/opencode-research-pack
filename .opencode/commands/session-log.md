@@ -5,6 +5,10 @@ description: Write a durable session log capturing completed work, findings, ope
 
 # Session Log
 
-Invoke the `log` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Call the `skill` tool with name `log`.
+
+User arguments: `$ARGUMENTS`
+
+After the skill loads, execute its workflow using the user arguments.
 
 Output: session log in `notes/session-logs/`.

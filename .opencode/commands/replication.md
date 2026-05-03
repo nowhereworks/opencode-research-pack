@@ -5,7 +5,11 @@ description: Plan or execute a replication of a paper, claim, or benchmark. Use 
 
 # Replication
 
-Invoke the `replicate` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Call the `skill` tool with name `replicate`.
+
+User arguments: `$ARGUMENTS`
+
+After the skill loads, execute its workflow using the user arguments. If no paper, claim, or benchmark was provided, ask one concise question for the replication target before proceeding.
 
 Agents used: `researcher`
 

@@ -5,7 +5,11 @@ description: Run a thorough, source-heavy investigation on any topic. Use when t
 
 # Deep Research
 
-Invoke the `deepresearch` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Call the `skill` tool with name `deepresearch`.
+
+User arguments: `$ARGUMENTS`
+
+After the skill loads, execute its workflow using the user arguments. If no topic was provided, ask one concise question for the topic before proceeding.
 
 Agents used: `researcher`, `verifier`, `reviewer`
 

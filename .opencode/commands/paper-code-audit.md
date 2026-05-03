@@ -5,7 +5,11 @@ description: Compare a paper's claims against its public codebase. Use when the 
 
 # Paper-Code Audit
 
-Invoke the `audit` skill. The skill expands the full workflow instructions in the active session; do not try to read a relative prompt-template path from the installed skill directory.
+Call the `skill` tool with name `audit`.
+
+User arguments: `$ARGUMENTS`
+
+After the skill loads, execute its workflow using the user arguments. If no paper or repository was provided, ask one concise question for the audit target before proceeding.
 
 Agents used: `researcher`, `verifier`
 
