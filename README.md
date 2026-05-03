@@ -17,8 +17,8 @@ This repo is meant to be used from inside an OpenCode workspace. A good first ru
 5. Start with one of the included slash commands such as `/deepresearch`, `/literature-review`, or `/eli5`.
 
 ```bash
-git clone https://github.com/<your-org-or-user>/feynman-opencode.git
-cd feynman-opencode
+git clone https://github.com/nowhereworks/opencode-research-pack.git
+cd opencode-research-pack
 export OPENCODE_ENABLE_EXA=1
 opencode
 ```
