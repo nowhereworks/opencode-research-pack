@@ -12,7 +12,7 @@ usage() {
   printf '%s\n' "  researcher-files  Create per-researcher brief skeletons"
   printf '%s\n' "  provenance        Create a provenance skeleton next to the final artifact"
   printf '%s\n' "  deliver           Copy the final candidate to <slug>/outputs/ or <slug>/papers/"
-  printf '%s\n' "  verify            Check the artifact contract"
+  printf '%s\n' "  verify            Check artifact files only; does not verify research quality"
   printf '%s\n' ""
   printf '%s\n' "Common options:"
   printf '%s\n' "  --topic TEXT      Research topic used to derive a slug"
@@ -340,6 +340,7 @@ command_provenance() {
 - **Sources accepted:** TODO
 - **Sources rejected:** TODO
 - **Verification:** $verification
+- **Artifact check:** TODO
 - **Plan:** $slug/outputs/.plans/$slug.md
 - **Research files:** TODO
 EOF
@@ -479,8 +480,10 @@ command_verify() {
   fi
 
   if [[ "$failures" -eq 0 ]]; then
+    printf 'artifact_check=PASS\n'
     printf 'verification=PASS\n'
   else
+    printf 'artifact_check=FAIL\n'
     printf 'verification=FAIL\n'
     exit 1
   fi

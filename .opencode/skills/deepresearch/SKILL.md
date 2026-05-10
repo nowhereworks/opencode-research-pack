@@ -30,7 +30,9 @@ After the user approves the plan, the run must leave these files on disk, even i
 
 If the user does not approve the plan, do not create placeholder draft, cited, final, or provenance files.
 
-After the user approves the plan, if any capability fails, continue in degraded mode and still write a blocked or partial final output and provenance sidecar. Never end with chat-only output after plan approval. Never end with only an explanation in chat after plan approval. Use `Verification: BLOCKED` when verification could not be completed.
+After the user approves the plan, if any capability fails, continue in degraded mode and still write a blocked or partial final output and provenance sidecar. Never end with chat-only output after plan approval. Never end with only an explanation in chat after plan approval. Use `Verification: BLOCKED` when quality verification could not be completed.
+
+Script checks are artifact-contract checks only. They prove required files and directories exist; they do not prove source quality, citation support, plan completeness, or research correctness. The model remains responsible for all quality verification.
 
 ## Step 1: Plan
 
@@ -43,7 +45,7 @@ Run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topi
 - Verification log
 - Decision log
 
-Before asking for confirmation, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase pre-approval`.
+Before asking for confirmation, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase pre-approval` as an artifact-contract check only.
 
 Make the scale decision before assigning owners in the plan. If the topic is a narrow "what is X" explainer, the plan must use lead-owned direct search tasks only; do not allocate researcher agents in the task ledger.
 
@@ -143,12 +145,15 @@ If direct search/no researcher agents was chosen:
 
 - Review the cited draft yourself.
 - Write `<slug>/outputs/.drafts/<slug>-verification.md` with FATAL / MAJOR / MINOR findings and the checks performed.
+- Include a quality checklist covering plan TODO removal, search-angle coverage, claim support, citation relevance/reachability, provenance completeness, and remaining caveats.
 - Fix FATAL issues before delivery.
 - Do not spawn the `reviewer` agent for simple direct-search runs.
 
 If researcher agents were used, only after `<slug>/outputs/.drafts/<slug>-cited.md` exists, run the `reviewer` agent against it when the task tool and reviewer agent are available. If the task tool or reviewer agent is unavailable or fails, review the cited draft yourself and record the limitation in `<slug>/outputs/.drafts/<slug>-verification.md`.
 
 Use the task tool with subagent_type `reviewer`. Ask the agent to verify `<slug>/outputs/.drafts/<slug>-cited.md`, flag unsupported claims, logical gaps, single-source critical claims, and overstated confidence, then write `<slug>/outputs/.drafts/<slug>-verification.md`.
+
+Whether review is self-owned or delegated, `<slug>/outputs/.drafts/<slug>-verification.md` must contain the model-owned quality decision: `Verification: PASS`, `Verification: PASS WITH NOTES`, or `Verification: BLOCKED`. This decision must be based on evidence quality and claim support, not on the script artifact check.
 
 If the reviewer flags FATAL issues, fix them before delivery and run one more review pass. Note MAJOR issues in Open Questions. Accept MINOR issues.
 
@@ -160,7 +165,7 @@ The final candidate is `<slug>/outputs/.drafts/<slug>-revised.md` if it exists; 
 
 ## Step 7: Deliver
 
-Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh provenance --slug <slug> --dest outputs|papers --verification PASS|PASS_WITH_NOTES|BLOCKED`, then fill in the provenance details. Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh deliver --slug <slug> --dest outputs|papers` to copy the final candidate to:
+Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh provenance --slug <slug> --dest outputs|papers --verification PASS|PASS_WITH_NOTES|BLOCKED`, using the model-owned quality verification status from `<slug>/outputs/.drafts/<slug>-verification.md`, then fill in the provenance details. Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh deliver --slug <slug> --dest outputs|papers` to copy the final candidate to:
 
 - `<slug>/papers/<slug>.md` for paper-style drafts
 - `<slug>/outputs/<slug>.md` for everything else
@@ -176,10 +181,11 @@ Write provenance next to it as `<slug>.provenance.md`:
 - **Sources accepted:** [count and/or list]
 - **Sources rejected:** [dead, unverifiable, or removed]
 - **Verification:** [PASS / PASS WITH NOTES / BLOCKED]
+- **Artifact check:** [PASS / FAIL]
 - **Plan:** <slug>/outputs/.plans/<slug>.md
 - **Research files:** [files used]
 ```
 
-Before responding, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase post-approval --dest outputs|papers`. If verification could not be completed, set `Verification: BLOCKED` or `PASS WITH NOTES` and list the missing checks.
+Before responding, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase post-approval --dest outputs|papers` as the final artifact-contract check. If the artifact check fails, fix missing files when possible; otherwise set `Artifact check: FAIL`, set `Verification: BLOCKED` or `PASS WITH NOTES` as appropriate, and list the missing checks.
 
 Final response should be brief: link the final file, provenance file, and any blocked checks.
