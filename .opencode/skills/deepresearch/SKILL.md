@@ -11,7 +11,7 @@ metadata:
 
 Run deep research for the user's topic.
 
-This is an execution request, not a request to explain or implement the workflow instructions. Execute the workflow. Do not answer by describing the protocol, do not explain these instructions, and do not restate the protocol. First actions should create `outputs/.plans`, `outputs/.drafts`, `outputs`, and `papers`, then write the plan artifact.
+This is an execution request, not a request to explain or implement the workflow instructions. Execute the workflow. Do not answer by describing the protocol, do not explain these instructions, and do not restate the protocol. First action must be: run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"`. Use the emitted `slug` and paths for the rest of the workflow, then update the created plan artifact with the actual plan content.
 
 ## Artifact Contract
 
@@ -34,7 +34,7 @@ After the user approves the plan, if any capability fails, continue in degraded 
 
 ## Step 1: Plan
 
-Create `outputs/.plans/<slug>.md` immediately. The plan must include:
+Run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"` immediately, then update `outputs/.plans/<slug>.md`. The plan must include:
 
 - Key questions
 - Evidence needed
@@ -42,6 +42,8 @@ Create `outputs/.plans/<slug>.md` immediately. The plan must include:
 - Task ledger
 - Verification log
 - Decision log
+
+Before asking for confirmation, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase pre-approval`.
 
 Make the scale decision before assigning owners in the plan. If the topic is a narrow "what is X" explainer, the plan must use lead-owned direct search tasks only; do not allocate researcher agents in the task ledger.
 
@@ -85,8 +87,8 @@ If direct search was chosen:
 
 If researcher agents were chosen:
 
-- Write a per-researcher brief first, such as `outputs/.plans/<slug>-T1.md`.
-- Assign a unique research output path per researcher, such as `outputs/.drafts/<slug>-research-T1.md`.
+- After choosing the researcher count, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh researcher-files --slug <slug> --count <N>`, then update each generated `outputs/.plans/<slug>-T<N>.md` brief with the actual assignment.
+- Use the unique research output paths emitted by the script, such as `outputs/.drafts/<slug>-research-T1.md`.
 - Keep `task` tool prompts concise and valid.
 - Do not name exact tool commands in researcher tasks unless those tool names are visible in the current tool set.
 - Prefer broad guidance such as "use paper search and web search"; if a PDF parser or paper fetch fails, the researcher must continue from metadata, abstracts, and web sources and mark PDF parsing as blocked.
@@ -158,7 +160,7 @@ The final candidate is `outputs/.drafts/<slug>-revised.md` if it exists; otherwi
 
 ## Step 7: Deliver
 
-Copy the final candidate to:
+Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh provenance --slug <slug> --dest outputs|papers --verification PASS|PASS_WITH_NOTES|BLOCKED`, then fill in the provenance details. Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh deliver --slug <slug> --dest outputs|papers` to copy the final candidate to:
 
 - `papers/<slug>.md` for paper-style drafts
 - `outputs/<slug>.md` for everything else
@@ -178,6 +180,6 @@ Write provenance next to it as `<slug>.provenance.md`:
 - **Research files:** [files used]
 ```
 
-Before responding, verify on disk that all required artifacts exist. If verification could not be completed, set `Verification: BLOCKED` or `PASS WITH NOTES` and list the missing checks.
+Before responding, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase post-approval --dest outputs|papers`. If verification could not be completed, set `Verification: BLOCKED` or `PASS WITH NOTES` and list the missing checks.
 
 Final response should be brief: link the final file, provenance file, and any blocked checks.
