@@ -11,7 +11,7 @@ metadata:
 
 Run deep research for the user's topic.
 
-This is an execution request, not a request to explain or implement the workflow instructions. Execute the workflow. Do not answer by describing the protocol, do not explain these instructions, and do not restate the protocol. First action must be: run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"`. Use the emitted `slug` and paths for the rest of the workflow, then update the created plan artifact with the actual plan content.
+This is an execution request, not a request to explain or implement the workflow instructions. Execute the workflow. Do not answer by describing the protocol, do not explain these instructions, and do not restate the protocol. First action must be: run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"`. Use the emitted `slug` and paths for the rest of the workflow, then update the created plan artifact with the actual plan content. All artifacts for a run must live under the emitted `<slug>/` directory.
 
 ## Artifact Contract
 
@@ -19,14 +19,14 @@ Derive a short slug from the topic: lowercase, hyphenated, no filler words, at m
 
 Before plan approval, the only required artifact is:
 
-- `outputs/.plans/<slug>.md`
+- `<slug>/outputs/.plans/<slug>.md`
 
 After the user approves the plan, the run must leave these files on disk, even if some capabilities fail:
 
-- `outputs/.drafts/<slug>-draft.md`
-- `outputs/.drafts/<slug>-cited.md`
-- `outputs/<slug>.md` or `papers/<slug>.md`
-- `outputs/<slug>.provenance.md` or `papers/<slug>.provenance.md`
+- `<slug>/outputs/.drafts/<slug>-draft.md`
+- `<slug>/outputs/.drafts/<slug>-cited.md`
+- `<slug>/outputs/<slug>.md` or `<slug>/papers/<slug>.md`
+- `<slug>/outputs/<slug>.provenance.md` or `<slug>/papers/<slug>.provenance.md`
 
 If the user does not approve the plan, do not create placeholder draft, cited, final, or provenance files.
 
@@ -34,7 +34,7 @@ After the user approves the plan, if any capability fails, continue in degraded 
 
 ## Step 1: Plan
 
-Run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"` immediately, then update `outputs/.plans/<slug>.md`. The plan must include:
+Run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"` immediately, then update the emitted plan path, normally `<slug>/outputs/.plans/<slug>.md`. The plan must include:
 
 - Key questions
 - Evidence needed
@@ -53,7 +53,7 @@ After writing the plan, stop and ask for explicit confirmation before gathering 
 
 `Proceed with this deep research plan? Reply "yes" to continue, or tell me what to change.`
 
-Do not run searches, fetch sources, spawn agents, draft, cite, review, or deliver final artifacts until the user confirms. If the user requests changes, update `outputs/.plans/<slug>.md` first, then ask for confirmation again.
+Do not run searches, fetch sources, spawn agents, draft, cite, review, or deliver final artifacts until the user confirms. If the user requests changes, update `<slug>/outputs/.plans/<slug>.md` first, then ask for confirmation again.
 
 ## Step 2: Scale
 
@@ -81,14 +81,14 @@ If direct search was chosen:
 - Skip researcher spawning entirely.
 - Search and fetch sources yourself.
 - Use multiple search terms or angles before drafting. Minimum: 3 distinct queries for direct-mode research, covering definition/history, mechanism/formula, and current usage/comparison when relevant.
-- Record the exact search terms used in `outputs/.drafts/<slug>-research-direct.md`.
-- Write notes to `outputs/.drafts/<slug>-research-direct.md`.
+- Record the exact search terms used in `<slug>/outputs/.drafts/<slug>-research-direct.md`.
+- Write notes to `<slug>/outputs/.drafts/<slug>-research-direct.md`.
 - Continue to synthesis.
 
 If researcher agents were chosen:
 
-- After choosing the researcher count, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh researcher-files --slug <slug> --count <N>`, then update each generated `outputs/.plans/<slug>-T<N>.md` brief with the actual assignment.
-- Use the unique research output paths emitted by the script, such as `outputs/.drafts/<slug>-research-T1.md`.
+- After choosing the researcher count, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh researcher-files --slug <slug> --count <N>`, then update each generated `<slug>/outputs/.plans/<slug>-T<N>.md` brief with the actual assignment.
+- Use the unique research output paths emitted by the script, such as `<slug>/outputs/.drafts/<slug>-research-T1.md`.
 - Keep `task` tool prompts concise and valid.
 - Do not name exact tool commands in researcher tasks unless those tool names are visible in the current tool set.
 - Prefer broad guidance such as "use paper search and web search"; if a PDF parser or paper fetch fails, the researcher must continue from metadata, abstracts, and web sources and mark PDF parsing as blocked.
@@ -97,7 +97,7 @@ If researcher agents were chosen:
 Example task shape:
 
 ```text
-Use the task tool with subagent_type "researcher". Prompt the agent to read outputs/.plans/<slug>-T1.md and write outputs/.drafts/<slug>-research-T1.md. Ask it to return only a one-line completion summary.
+Use the task tool with subagent_type "researcher". Prompt the agent to read <slug>/outputs/.plans/<slug>-T1.md and write <slug>/outputs/.drafts/<slug>-research-T1.md. Ask it to return only a one-line completion summary.
 ```
 
 After evidence gathering, update the plan ledger and verification log. If research failed, record exactly what failed and proceed with a blocked or partial draft.
@@ -106,7 +106,7 @@ After evidence gathering, update the plan ledger and verification log. If resear
 
 Write the report yourself. Do not delegate synthesis.
 
-Save to `outputs/.drafts/<slug>-draft.md`.
+Save to `<slug>/outputs/.drafts/<slug>-draft.md`.
 
 Include:
 
@@ -128,42 +128,42 @@ If direct search/no researcher agents was chosen:
 
 - Do citation yourself.
 - Verify reachable HTML/doc URLs with available fetch/search tools.
-- Copy or rewrite `outputs/.drafts/<slug>-draft.md` to `outputs/.drafts/<slug>-cited.md` with inline citations and a Sources section.
+- Copy or rewrite `<slug>/outputs/.drafts/<slug>-draft.md` to `<slug>/outputs/.drafts/<slug>-cited.md` with inline citations and a Sources section.
 - Do not spawn the `verifier` agent for simple direct-search runs.
 
-If researcher agents were used, run the `verifier` agent after the draft exists. This step is mandatory when the task tool and verifier agent are available, and must complete before any reviewer runs. Do not run the `verifier` and `reviewer` in the same parallel task call. If the task tool or verifier agent is unavailable or fails, do citation yourself with available search/fetch tools, write `outputs/.drafts/<slug>-cited.md`, and mark verification as `BLOCKED` or `PASS WITH NOTES`.
+If researcher agents were used, run the `verifier` agent after the draft exists. This step is mandatory when the task tool and verifier agent are available, and must complete before any reviewer runs. Do not run the `verifier` and `reviewer` in the same parallel task call. If the task tool or verifier agent is unavailable or fails, do citation yourself with available search/fetch tools, write `<slug>/outputs/.drafts/<slug>-cited.md`, and mark verification as `BLOCKED` or `PASS WITH NOTES`.
 
-Use the task tool with subagent_type `verifier`. Ask the agent to add inline citations to `outputs/.drafts/<slug>-draft.md` using the research files as source material, verify every URL, and write the complete cited brief to `outputs/.drafts/<slug>-cited.md`.
+Use the task tool with subagent_type `verifier`. Ask the agent to add inline citations to `<slug>/outputs/.drafts/<slug>-draft.md` using the research files as source material, verify every URL, and write the complete cited brief to `<slug>/outputs/.drafts/<slug>-cited.md`.
 
-After the verifier returns, verify on disk that `outputs/.drafts/<slug>-cited.md` exists. If the verifier wrote elsewhere, find the cited file and move or copy it to `outputs/.drafts/<slug>-cited.md`.
+After the verifier returns, verify on disk that `<slug>/outputs/.drafts/<slug>-cited.md` exists. If the verifier wrote elsewhere, find the cited file and move or copy it to `<slug>/outputs/.drafts/<slug>-cited.md`.
 
 ## Step 6: Review
 
 If direct search/no researcher agents was chosen:
 
 - Review the cited draft yourself.
-- Write `outputs/.drafts/<slug>-verification.md` with FATAL / MAJOR / MINOR findings and the checks performed.
+- Write `<slug>/outputs/.drafts/<slug>-verification.md` with FATAL / MAJOR / MINOR findings and the checks performed.
 - Fix FATAL issues before delivery.
 - Do not spawn the `reviewer` agent for simple direct-search runs.
 
-If researcher agents were used, only after `outputs/.drafts/<slug>-cited.md` exists, run the `reviewer` agent against it when the task tool and reviewer agent are available. If the task tool or reviewer agent is unavailable or fails, review the cited draft yourself and record the limitation in `outputs/.drafts/<slug>-verification.md`.
+If researcher agents were used, only after `<slug>/outputs/.drafts/<slug>-cited.md` exists, run the `reviewer` agent against it when the task tool and reviewer agent are available. If the task tool or reviewer agent is unavailable or fails, review the cited draft yourself and record the limitation in `<slug>/outputs/.drafts/<slug>-verification.md`.
 
-Use the task tool with subagent_type `reviewer`. Ask the agent to verify `outputs/.drafts/<slug>-cited.md`, flag unsupported claims, logical gaps, single-source critical claims, and overstated confidence, then write `outputs/.drafts/<slug>-verification.md`.
+Use the task tool with subagent_type `reviewer`. Ask the agent to verify `<slug>/outputs/.drafts/<slug>-cited.md`, flag unsupported claims, logical gaps, single-source critical claims, and overstated confidence, then write `<slug>/outputs/.drafts/<slug>-verification.md`.
 
 If the reviewer flags FATAL issues, fix them before delivery and run one more review pass. Note MAJOR issues in Open Questions. Accept MINOR issues.
 
-When applying reviewer fixes, do not issue one giant edit with many replacements. Use small localized edits only for 1-3 simple corrections. For section rewrites, table rewrites, or more than 3 substantive fixes, write a corrected full file to `outputs/.drafts/<slug>-revised.md` instead.
+When applying reviewer fixes, do not issue one giant edit with many replacements. Use small localized edits only for 1-3 simple corrections. For section rewrites, table rewrites, or more than 3 substantive fixes, write a corrected full file to `<slug>/outputs/.drafts/<slug>-revised.md` instead.
 
 After applying reviewer, verifier, audit, or PI-style fixes, run an explicit on-disk verification before saying the fixes landed. Use targeted reads or shell checks to prove the old unsupported wording is gone and the replacement wording exists. Provenance may only say an issue was fixed when this post-edit verification passed.
 
-The final candidate is `outputs/.drafts/<slug>-revised.md` if it exists; otherwise it is `outputs/.drafts/<slug>-cited.md`.
+The final candidate is `<slug>/outputs/.drafts/<slug>-revised.md` if it exists; otherwise it is `<slug>/outputs/.drafts/<slug>-cited.md`.
 
 ## Step 7: Deliver
 
 Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh provenance --slug <slug> --dest outputs|papers --verification PASS|PASS_WITH_NOTES|BLOCKED`, then fill in the provenance details. Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh deliver --slug <slug> --dest outputs|papers` to copy the final candidate to:
 
-- `papers/<slug>.md` for paper-style drafts
-- `outputs/<slug>.md` for everything else
+- `<slug>/papers/<slug>.md` for paper-style drafts
+- `<slug>/outputs/<slug>.md` for everything else
 
 Write provenance next to it as `<slug>.provenance.md`:
 
@@ -176,7 +176,7 @@ Write provenance next to it as `<slug>.provenance.md`:
 - **Sources accepted:** [count and/or list]
 - **Sources rejected:** [dead, unverifiable, or removed]
 - **Verification:** [PASS / PASS WITH NOTES / BLOCKED]
-- **Plan:** outputs/.plans/<slug>.md
+- **Plan:** <slug>/outputs/.plans/<slug>.md
 - **Research files:** [files used]
 ```
 

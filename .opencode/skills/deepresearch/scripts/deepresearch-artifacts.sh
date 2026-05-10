@@ -11,7 +11,7 @@ usage() {
   printf '%s\n' "  paths             Print canonical artifact paths"
   printf '%s\n' "  researcher-files  Create per-researcher brief skeletons"
   printf '%s\n' "  provenance        Create a provenance skeleton next to the final artifact"
-  printf '%s\n' "  deliver           Copy the final candidate to outputs/ or papers/"
+  printf '%s\n' "  deliver           Copy the final candidate to <slug>/outputs/ or <slug>/papers/"
   printf '%s\n' "  verify            Check the artifact contract"
   printf '%s\n' ""
   printf '%s\n' "Common options:"
@@ -91,20 +91,28 @@ resolve_slug() {
   printf '%s\n' "$slug"
 }
 
+artifact_root() { printf '%s/%s\n' "$ROOT" "$1"; }
+
 ensure_dirs() {
-  mkdir -p "$ROOT/outputs/.plans" "$ROOT/outputs/.drafts" "$ROOT/outputs" "$ROOT/papers"
+  local slug="$1"
+  local base
+  base=$(artifact_root "$slug")
+  mkdir -p "$base/outputs/.plans" "$base/outputs/.drafts" "$base/outputs" "$base/papers"
 }
 
-path_plan() { printf '%s/outputs/.plans/%s.md\n' "$ROOT" "$1"; }
-path_draft() { printf '%s/outputs/.drafts/%s-draft.md\n' "$ROOT" "$1"; }
-path_cited() { printf '%s/outputs/.drafts/%s-cited.md\n' "$ROOT" "$1"; }
-path_direct() { printf '%s/outputs/.drafts/%s-research-direct.md\n' "$ROOT" "$1"; }
-path_verification() { printf '%s/outputs/.drafts/%s-verification.md\n' "$ROOT" "$1"; }
-path_revised() { printf '%s/outputs/.drafts/%s-revised.md\n' "$ROOT" "$1"; }
-path_outputs_final() { printf '%s/outputs/%s.md\n' "$ROOT" "$1"; }
-path_outputs_provenance() { printf '%s/outputs/%s.provenance.md\n' "$ROOT" "$1"; }
-path_papers_final() { printf '%s/papers/%s.md\n' "$ROOT" "$1"; }
-path_papers_provenance() { printf '%s/papers/%s.provenance.md\n' "$ROOT" "$1"; }
+path_plan() { printf '%s/%s/outputs/.plans/%s.md\n' "$ROOT" "$1" "$1"; }
+path_researcher_brief() { printf '%s/%s/outputs/.plans/%s-T%s.md\n' "$ROOT" "$1" "$1" "$2"; }
+path_draft() { printf '%s/%s/outputs/.drafts/%s-draft.md\n' "$ROOT" "$1" "$1"; }
+path_cited() { printf '%s/%s/outputs/.drafts/%s-cited.md\n' "$ROOT" "$1" "$1"; }
+path_direct() { printf '%s/%s/outputs/.drafts/%s-research-direct.md\n' "$ROOT" "$1" "$1"; }
+path_researcher_output() { printf '%s/%s/outputs/.drafts/%s-research-T%s.md\n' "$ROOT" "$1" "$1" "$2"; }
+relative_researcher_output() { printf '%s/outputs/.drafts/%s-research-T%s.md\n' "$1" "$1" "$2"; }
+path_verification() { printf '%s/%s/outputs/.drafts/%s-verification.md\n' "$ROOT" "$1" "$1"; }
+path_revised() { printf '%s/%s/outputs/.drafts/%s-revised.md\n' "$ROOT" "$1" "$1"; }
+path_outputs_final() { printf '%s/%s/outputs/%s.md\n' "$ROOT" "$1" "$1"; }
+path_outputs_provenance() { printf '%s/%s/outputs/%s.provenance.md\n' "$ROOT" "$1" "$1"; }
+path_papers_final() { printf '%s/%s/papers/%s.md\n' "$ROOT" "$1" "$1"; }
+path_papers_provenance() { printf '%s/%s/papers/%s.provenance.md\n' "$ROOT" "$1" "$1"; }
 
 is_nonempty_file() {
   [[ -f "$1" && -s "$1" ]]
@@ -211,7 +219,7 @@ command_init() {
   done
 
   slug=$(resolve_slug "$topic" "$slug")
-  ensure_dirs
+  ensure_dirs "$slug"
   local plan
   plan=$(path_plan "$slug")
   if [[ -e "$plan" && "$force" -ne 1 ]]; then
@@ -255,12 +263,13 @@ command_researcher_files() {
   done
   slug=$(resolve_slug "$topic" "$slug")
   [[ "$count" =~ ^[1-9][0-9]*$ ]] || die "--count must be a positive integer"
-  ensure_dirs
+  ensure_dirs "$slug"
 
-  local i brief research_path
+  local i brief research_path research_abs_path
   for ((i = 1; i <= count; i++)); do
-    brief="$ROOT/outputs/.plans/${slug}-T${i}.md"
-    research_path="outputs/.drafts/${slug}-research-T${i}.md"
+    brief=$(path_researcher_brief "$slug" "$i")
+    research_path=$(relative_researcher_output "$slug" "$i")
+    research_abs_path=$(path_researcher_output "$slug" "$i")
     if [[ -e "$brief" && "$force" -ne 1 ]]; then
       printf 'brief_exists=%s\n' "$brief"
       continue
@@ -286,7 +295,7 @@ command_researcher_files() {
 - Mark unavailable PDF parsing, dead links, or missing evidence as blocked.
 EOF
     printf 'brief_created=%s\n' "$brief"
-    printf 'research_output_path=%s/%s\n' "$ROOT" "$research_path"
+    printf 'research_output_path=%s\n' "$research_abs_path"
   done
 }
 
@@ -309,7 +318,7 @@ command_provenance() {
   done
   [[ "$dest" == "outputs" || "$dest" == "papers" ]] || die "--dest must be outputs or papers"
   slug=$(resolve_slug "$topic" "$slug")
-  ensure_dirs
+  ensure_dirs "$slug"
 
   local provenance today
   today=$(date +%F)
@@ -331,7 +340,7 @@ command_provenance() {
 - **Sources accepted:** TODO
 - **Sources rejected:** TODO
 - **Verification:** $verification
-- **Plan:** outputs/.plans/$slug.md
+- **Plan:** $slug/outputs/.plans/$slug.md
 - **Research files:** TODO
 EOF
   printf 'provenance_created=%s\n' "$provenance"
@@ -354,7 +363,7 @@ command_deliver() {
   done
   [[ "$dest" == "outputs" || "$dest" == "papers" ]] || die "--dest must be outputs or papers"
   slug=$(resolve_slug "$topic" "$slug")
-  ensure_dirs
+  ensure_dirs "$slug"
 
   local candidate final provenance
   if is_nonempty_file "$(path_revised "$slug")"; then
@@ -405,7 +414,12 @@ command_verify() {
 
   local failures=0
   local path
-  for path in "$ROOT/outputs/.plans" "$ROOT/outputs/.drafts" "$ROOT/outputs" "$ROOT/papers"; do
+  for path in \
+    "$(artifact_root "$slug")" \
+    "$(artifact_root "$slug")/outputs/.plans" \
+    "$(artifact_root "$slug")/outputs/.drafts" \
+    "$(artifact_root "$slug")/outputs" \
+    "$(artifact_root "$slug")/papers"; do
     if [[ ! -d "$path" ]]; then
       printf 'missing_dir=%s\n' "$path"
       failures=$((failures + 1))
@@ -453,7 +467,7 @@ command_verify() {
       fi
     fi
     if [[ -z "$final" ]]; then
-      printf 'missing_final=outputs_or_papers/%s.md\n' "$slug"
+      printf 'missing_final=%s/outputs_or_papers/%s.md\n' "$slug" "$slug"
       failures=$((failures + 1))
     elif ! is_nonempty_file "$provenance"; then
       printf 'missing_or_empty=%s\n' "$provenance"

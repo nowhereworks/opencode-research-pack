@@ -13,4 +13,4 @@ After the skill loads, execute its workflow using the user arguments. If no topi
 
 Agents used: `researcher`, `verifier`, `reviewer` when delegation is available and useful; otherwise lead-owned degraded mode.
 
-Output: cited brief in `outputs/` with `.provenance.md` sidecar.
+Output: cited brief under `<slug>/outputs/` with `.provenance.md` sidecar.
