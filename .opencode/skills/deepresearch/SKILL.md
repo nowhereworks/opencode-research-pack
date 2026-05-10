@@ -25,6 +25,8 @@ After the user approves the plan, the run must leave these files on disk, even i
 
 - `<slug>/outputs/.drafts/<slug>-draft.md`
 - `<slug>/outputs/.drafts/<slug>-cited.md`
+- `<slug>/outputs/.drafts/<slug>-search-log.md`
+- `<slug>/outputs/.drafts/<slug>-evidence-matrix.md`
 - `<slug>/outputs/<slug>.md` or `<slug>/papers/<slug>.md`
 - `<slug>/outputs/<slug>.provenance.md` or `<slug>/papers/<slug>.provenance.md`
 
@@ -39,11 +41,26 @@ Script checks are artifact-contract checks only. They prove required files and d
 Run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"` immediately, then update the emitted plan path, normally `<slug>/outputs/.plans/<slug>.md`. The plan must include:
 
 - Key questions
+- Scope defaults
 - Evidence needed
+- Search coverage matrix
 - Scale decision
 - Task ledger
 - Verification log
 - Decision log
+
+Do not ask the user for audience, region, date range, source types, depth, or output destination unless the ambiguity would materially change the answer and no safe default applies. Record assumed defaults in the plan's Decision Log and proceed to approval.
+
+Use these defaults unless the user or topic clearly implies otherwise:
+
+- **Audience:** technically literate generalist; use specialist or academic treatment when the topic or wording implies it.
+- **Time range:** current state plus necessary historical context; prioritize the last 24 months for fast-moving topics.
+- **Geography:** global; for law, policy, market, tax, healthcare access, or regulation topics, use US/EU/global comparison if no jurisdiction is specified.
+- **Source types:** primary sources first, then authoritative secondary analysis.
+- **Exclusions:** low-quality SEO pages, unsourced AI-generated content, and social posts unless they are primary evidence.
+- **Depth:** infer from request wording; simple explainers use direct mode, while broad/deep/comprehensive/landscape requests use multi-agent mode when useful.
+- **Destination:** `outputs`; use `papers` only for paper-style drafts or when the user asks for a manuscript/paper.
+- **High-stakes topics:** automatically apply higher scrutiny for medical, legal, finance, safety, security, policy, or welfare-impacting topics.
 
 Before asking for confirmation, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase pre-approval` as an artifact-contract check only.
 
@@ -76,6 +93,16 @@ Use researcher agents only when decomposition clearly helps:
 
 Use only tool names visible in the current tool set. For web work, use available search and fetch tools; never call tool names that are not exposed in the current session.
 
+After approval and before searches, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh quality-files --slug <slug>` to create the search log and evidence matrix skeletons. Update both files throughout evidence gathering.
+
+Maintain `<slug>/outputs/.drafts/<slug>-search-log.md` with every meaningful query or source-discovery action: query/tool, date, search angle, result count when available, accepted sources, rejected sources, and follow-up gaps. Do not treat the log as a final bibliography; it is a reproducibility trail.
+
+Maintain `<slug>/outputs/.drafts/<slug>-evidence-matrix.md` with extracted evidence rows: question/theme, claim, direct quote or locator when available, source URL/DOI/artifact path, source type, confidence, contradiction notes, and verification status.
+
+Prefer primary sources: papers, official docs, standards, datasets, code repositories, filings, benchmark pages, and authoritative institutional publications. Use secondary sources for context or interpretation, not as sole support for critical claims when primary evidence is available. Reject or clearly caveat low-quality sources: undated SEO pages, content aggregators, unsourced AI-generated pages, and social posts without primary links.
+
+For academic or literature-heavy topics, use paper search when available. Check `alpha` availability before relying on it; if unavailable, continue with available web/search tools and record paper-search coverage as degraded. When seed papers or canonical sources are found and citation relationships matter, perform backward and/or forward citation chasing when feasible. If citation chasing is skipped, record why in the search log.
+
 Avoid crash-prone PDF parsing in this workflow. Do not fetch `.pdf` URLs unless the user explicitly asks for PDF extraction. Prefer paper metadata, abstracts, HTML pages, official docs, and web snippets. If only a PDF exists, cite the PDF URL from search metadata and mark full-text PDF parsing as blocked instead of fetching it.
 
 If direct search was chosen:
@@ -84,6 +111,8 @@ If direct search was chosen:
 - Search and fetch sources yourself.
 - Use multiple search terms or angles before drafting. Minimum: 3 distinct queries for direct-mode research, covering definition/history, mechanism/formula, and current usage/comparison when relevant.
 - Record the exact search terms used in `<slug>/outputs/.drafts/<slug>-research-direct.md`.
+- Also record the exact search terms and source decisions in `<slug>/outputs/.drafts/<slug>-search-log.md`.
+- Add extracted claims and source support to `<slug>/outputs/.drafts/<slug>-evidence-matrix.md`.
 - Write notes to `<slug>/outputs/.drafts/<slug>-research-direct.md`.
 - Continue to synthesis.
 
@@ -95,6 +124,7 @@ If researcher agents were chosen:
 - Do not name exact tool commands in researcher tasks unless those tool names are visible in the current tool set.
 - Prefer broad guidance such as "use paper search and web search"; if a PDF parser or paper fetch fails, the researcher must continue from metadata, abstracts, and web sources and mark PDF parsing as blocked.
 - If the task tool or researcher agent is unavailable or fails, continue lead-owned with available search/fetch tools, record the degraded mode in the plan ledger, and proceed with a blocked or partial draft.
+- Require each researcher brief to include search angles, inclusion/exclusion criteria, and the assigned research output path. Each researcher output must include source decisions, an evidence table with stable source IDs, contradictions or missing evidence, and coverage status.
 
 Example task shape:
 
@@ -102,7 +132,7 @@ Example task shape:
 Use the task tool with subagent_type "researcher". Prompt the agent to read <slug>/outputs/.plans/<slug>-T1.md and write <slug>/outputs/.drafts/<slug>-research-T1.md. Ask it to return only a one-line completion summary.
 ```
 
-After evidence gathering, update the plan ledger and verification log. If research failed, record exactly what failed and proceed with a blocked or partial draft.
+After the first evidence-gathering pass, perform a targeted gap pass before drafting: identify unanswered key questions, single-source critical claims, stale or low-quality sources, and contradictions. Run targeted follow-up searches or clearly record blocked gaps. After evidence gathering, update the plan ledger, search log, evidence matrix, and verification log. If research failed, record exactly what failed and proceed with a blocked or partial draft.
 
 ## Step 4: Draft
 
@@ -116,11 +146,13 @@ Include:
 - Findings organized by question/theme
 - Evidence-backed caveats and disagreements
 - Open questions
+- Methods note summarizing search scope, source-selection defaults, and any degraded coverage
 - No invented sources, results, figures, benchmarks, images, charts, or tables
 
 Before citation, sweep the draft:
 
 - Every critical claim, number, figure, table, or benchmark must map to a source URL, research note, raw artifact path, or command/script output.
+- Every critical claim should have converging support from primary evidence or be explicitly labeled as single-source, contested, or inferred.
 - Remove or downgrade unsupported claims.
 - Mark inferences as inferences.
 

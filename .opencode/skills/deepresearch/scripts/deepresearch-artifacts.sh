@@ -10,6 +10,7 @@ usage() {
   printf '%s\n' "  init              Create deepresearch directories and the plan skeleton only"
   printf '%s\n' "  paths             Print canonical artifact paths"
   printf '%s\n' "  researcher-files  Create per-researcher brief skeletons"
+  printf '%s\n' "  quality-files     Create search-log and evidence-matrix skeletons"
   printf '%s\n' "  provenance        Create a provenance skeleton next to the final artifact"
   printf '%s\n' "  deliver           Copy the final candidate to <slug>/outputs/ or <slug>/papers/"
   printf '%s\n' "  verify            Check artifact files only; does not verify research quality"
@@ -105,6 +106,8 @@ path_researcher_brief() { printf '%s/%s/outputs/.plans/%s-T%s.md\n' "$ROOT" "$1"
 path_draft() { printf '%s/%s/outputs/.drafts/%s-draft.md\n' "$ROOT" "$1" "$1"; }
 path_cited() { printf '%s/%s/outputs/.drafts/%s-cited.md\n' "$ROOT" "$1" "$1"; }
 path_direct() { printf '%s/%s/outputs/.drafts/%s-research-direct.md\n' "$ROOT" "$1" "$1"; }
+path_search_log() { printf '%s/%s/outputs/.drafts/%s-search-log.md\n' "$ROOT" "$1" "$1"; }
+path_evidence_matrix() { printf '%s/%s/outputs/.drafts/%s-evidence-matrix.md\n' "$ROOT" "$1" "$1"; }
 path_researcher_output() { printf '%s/%s/outputs/.drafts/%s-research-T%s.md\n' "$ROOT" "$1" "$1" "$2"; }
 relative_researcher_output() { printf '%s/outputs/.drafts/%s-research-T%s.md\n' "$1" "$1" "$2"; }
 path_verification() { printf '%s/%s/outputs/.drafts/%s-verification.md\n' "$ROOT" "$1" "$1"; }
@@ -169,6 +172,23 @@ write_plan() {
 
 - TODO: List primary sources, docs, papers, benchmarks, or artifacts needed.
 
+## Scope Defaults
+
+- **Audience:** technically literate generalist unless the topic implies specialist treatment.
+- **Time range:** current state plus necessary historical context; prioritize the last 24 months for fast-moving topics.
+- **Geography:** global unless jurisdiction-specific; for law, policy, market, tax, healthcare access, or regulation topics, use US/EU/global comparison if unspecified.
+- **Source types:** primary sources first, then authoritative secondary analysis.
+- **Exclusions:** low-quality SEO pages, unsourced AI-generated content, and social posts unless primary evidence.
+- **Depth:** infer from request wording; simple explainers use direct mode, broad/deep/comprehensive requests use multi-agent mode when useful.
+- **Destination:** outputs unless the user requests a paper-style artifact.
+- **High-stakes topics:** apply higher scrutiny for medical, legal, finance, safety, security, policy, or welfare-impacting topics.
+
+## Search Coverage Matrix
+
+| Question | Search angles | Source types | Owner | Status | Notes |
+| --- | --- | --- | --- | --- | --- |
+| TODO | TODO | TODO | lead | pending | TODO |
+
 ## Scale Decision
 
 - TODO: Choose direct search or researcher agents before assigning owners.
@@ -194,6 +214,8 @@ print_paths() {
   printf 'slug=%s\n' "$slug"
   printf 'plan=%s\n' "$(path_plan "$slug")"
   printf 'direct_research=%s\n' "$(path_direct "$slug")"
+  printf 'search_log=%s\n' "$(path_search_log "$slug")"
+  printf 'evidence_matrix=%s\n' "$(path_evidence_matrix "$slug")"
   printf 'draft=%s\n' "$(path_draft "$slug")"
   printf 'cited=%s\n' "$(path_cited "$slug")"
   printf 'verification=%s\n' "$(path_verification "$slug")"
@@ -286,17 +308,81 @@ command_researcher_files() {
 
 ## Evidence Targets
 
-- TODO: List source types, search angles, and exclusion criteria.
+- TODO: List source types, search angles, inclusion criteria, and exclusion criteria.
 
 ## Output Requirements
 
 - Write findings to \`$research_path\`.
+- Record search terms, accepted sources, rejected sources, and follow-up gaps.
+- Include an evidence table with stable source IDs, source type, confidence, and contradiction notes.
 - Include source URLs or artifact paths for every critical claim.
 - Mark unavailable PDF parsing, dead links, or missing evidence as blocked.
 EOF
     printf 'brief_created=%s\n' "$brief"
     printf 'research_output_path=%s\n' "$research_abs_path"
   done
+}
+
+command_quality_files() {
+  local topic=""
+  local slug=""
+  local force=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --topic) need_value "$1" "${2-}"; topic="$2"; shift 2 ;;
+      --slug) need_value "$1" "${2-}"; slug="$2"; shift 2 ;;
+      --force) force=1; shift ;;
+      -h|--help) usage; exit 0 ;;
+      *) die "unknown quality-files option: $1" ;;
+    esac
+  done
+  slug=$(resolve_slug "$topic" "$slug")
+  ensure_dirs "$slug"
+
+  local search_log evidence_matrix today
+  today=$(date +%F)
+  search_log=$(path_search_log "$slug")
+  evidence_matrix=$(path_evidence_matrix "$slug")
+
+  if [[ -e "$search_log" && "$force" -ne 1 ]]; then
+    printf 'search_log_exists=%s\n' "$search_log"
+  else
+    cat > "$search_log" <<EOF
+# Search Log: ${topic:-$slug}
+
+- **Date:** $today
+- **Slug:** $slug
+
+| # | Date | Tool/source | Query or action | Angle | Result count | Accepted sources | Rejected sources | Follow-up gaps |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | $today | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
+
+## Notes
+
+- TODO: Record citation chasing, unavailable tools, blocked PDF/full-text checks, and degraded coverage.
+EOF
+    printf 'search_log_created=%s\n' "$search_log"
+  fi
+
+  if [[ -e "$evidence_matrix" && "$force" -ne 1 ]]; then
+    printf 'evidence_matrix_exists=%s\n' "$evidence_matrix"
+  else
+    cat > "$evidence_matrix" <<EOF
+# Evidence Matrix: ${topic:-$slug}
+
+- **Date:** $today
+- **Slug:** $slug
+
+| # | Question/theme | Claim | Quote or locator | Source URL/DOI/path | Source type | Confidence | Contradiction notes | Verification status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | TODO | TODO | TODO | TODO | primary / secondary / artifact | low / medium / high | TODO | unchecked |
+
+## Coverage Status
+
+- TODO: List answered questions, unanswered questions, single-source critical claims, stale sources, and blocked checks.
+EOF
+    printf 'evidence_matrix_created=%s\n' "$evidence_matrix"
+  fi
 }
 
 command_provenance() {
@@ -436,6 +522,8 @@ command_verify() {
     for path in \
       "$(path_draft "$slug")" \
       "$(path_cited "$slug")" \
+      "$(path_search_log "$slug")" \
+      "$(path_evidence_matrix "$slug")" \
       "$(path_outputs_final "$slug")" \
       "$(path_outputs_provenance "$slug")" \
       "$(path_papers_final "$slug")" \
@@ -446,7 +534,11 @@ command_verify() {
       fi
     done
   else
-    for path in "$(path_draft "$slug")" "$(path_cited "$slug")"; do
+    for path in \
+      "$(path_draft "$slug")" \
+      "$(path_cited "$slug")" \
+      "$(path_search_log "$slug")" \
+      "$(path_evidence_matrix "$slug")"; do
       if ! is_nonempty_file "$path"; then
         printf 'missing_or_empty=%s\n' "$path"
         failures=$((failures + 1))
@@ -498,7 +590,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --root) need_value "$1" "${2-}"; ROOT="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
-    init|paths|researcher-files|provenance|deliver|verify)
+    init|paths|researcher-files|quality-files|provenance|deliver|verify)
       command="$1"
       shift
       "command_${command//-/_}" "$@"
