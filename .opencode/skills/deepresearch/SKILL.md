@@ -11,7 +11,7 @@ metadata:
 
 Run deep research for the user's topic.
 
-This is an execution request, not a request to explain or implement the workflow instructions. Execute the workflow. Do not answer by describing the protocol, do not explain these instructions, and do not restate the protocol. First action must be: run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"`. Use the emitted `slug` and paths for the rest of the workflow, then update the created plan artifact with the actual plan content. All artifacts for a run must live under the emitted `<slug>/` directory.
+This is an execution request, not a request to explain or implement the workflow instructions. Execute the workflow. Do not answer by describing the protocol, do not explain these instructions, and do not restate the protocol. First action must be: run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py init --topic "<topic>"`. Use the emitted `slug` and paths for the rest of the workflow, then update the created plan artifact with the actual plan content. All artifacts for a run must live under the emitted `<slug>/` directory.
 
 ## Artifact Contract
 
@@ -27,6 +27,7 @@ After the user approves the plan, the run must leave these files on disk, even i
 - `<slug>/outputs/.drafts/<slug>-cited.md`
 - `<slug>/outputs/.drafts/<slug>-search-log.md`
 - `<slug>/outputs/.drafts/<slug>-evidence-matrix.md`
+- `<slug>/outputs/.drafts/<slug>-verification.md`
 - `<slug>/outputs/<slug>.md` or `<slug>/papers/<slug>.md`
 - `<slug>/outputs/<slug>.provenance.md` or `<slug>/papers/<slug>.provenance.md`
 
@@ -38,7 +39,7 @@ Script checks are artifact-contract checks only. They prove required files and d
 
 ## Step 1: Plan
 
-Run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh init --topic "<topic>"` immediately, then update the emitted plan path, normally `<slug>/outputs/.plans/<slug>.md`. The plan must include:
+Run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py init --topic "<topic>"` immediately, then update the emitted plan path, normally `<slug>/outputs/.plans/<slug>.md`. The plan must include:
 
 - Key questions
 - Scope defaults
@@ -62,7 +63,7 @@ Use these defaults unless the user or topic clearly implies otherwise:
 - **Destination:** `outputs`; use `papers` only for paper-style drafts or when the user asks for a manuscript/paper.
 - **High-stakes topics:** automatically apply higher scrutiny for medical, legal, finance, safety, security, policy, or welfare-impacting topics.
 
-Before asking for confirmation, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase pre-approval` as an artifact-contract check only.
+Before asking for confirmation, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py verify --slug <slug> --phase pre-approval` as an artifact-contract check only.
 
 Make the scale decision before assigning owners in the plan. If the topic is a narrow "what is X" explainer, the plan must use lead-owned direct search tasks only; do not allocate researcher agents in the task ledger.
 
@@ -86,14 +87,28 @@ For "what is X" explainer topics, do not spawn researcher agents unless the user
 Use researcher agents only when decomposition clearly helps:
 
 - Direct comparison of 2-3 items: 2 `researcher` agents
-- Broad survey or multi-faceted topic: 3-4 `researcher` agents
-- Complex multi-domain research: 4-6 `researcher` agents
+- Broad survey or multi-faceted topic: 2-3 `researcher` agents
+- Complex multi-domain research: 3-4 `researcher` agents
+- 5-6 `researcher` agents only when the user explicitly asks for exhaustive or comprehensive coverage and is okay waiting longer
+
+## Soft Budget and Checkpoints
+
+Use a default soft research budget of 30 minutes after plan approval unless the user requests exhaustive coverage or explicitly approves a longer run. Treat this as a progress checkpoint, not a hard timeout.
+
+At roughly 20 minutes after approval, or after the first researcher/evidence pass, checkpoint:
+
+- Expected research files exist and are non-empty.
+- Search log and evidence matrix have moved beyond skeleton entries.
+- Enough supported evidence exists to write at least a partial answer.
+- Missing tracks, blocked tools, or slow agents are recorded in the plan ledger.
+
+At roughly 30 minutes after approval, prefer delivery over waiting for missing researcher tracks. If coverage is incomplete, write a partial evidence assessment with caveats, final/provenance artifacts, and `Verification: PASS WITH NOTES` or `Verification: BLOCKED` as appropriate. Do not let slow or missing subagent outputs prevent final artifact delivery after approval.
 
 ## Step 3: Gather Evidence
 
 Use only tool names visible in the current tool set. For web work, use available search and fetch tools; never call tool names that are not exposed in the current session.
 
-After approval and before searches, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh quality-files --slug <slug>` to create the search log and evidence matrix skeletons. Update both files throughout evidence gathering.
+After approval and before searches, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py quality-files --slug <slug>` to create the search log and evidence matrix skeletons. Update both files throughout evidence gathering.
 
 Maintain `<slug>/outputs/.drafts/<slug>-search-log.md` with every meaningful query or source-discovery action: query/tool, date, search angle, result count when available, accepted sources, rejected sources, and follow-up gaps. Do not treat the log as a final bibliography; it is a reproducibility trail.
 
@@ -118,12 +133,14 @@ If direct search was chosen:
 
 If researcher agents were chosen:
 
-- After choosing the researcher count, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh researcher-files --slug <slug> --count <N>`, then update each generated `<slug>/outputs/.plans/<slug>-T<N>.md` brief with the actual assignment.
+- After choosing the researcher count, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py researcher-files --slug <slug> --count <N>`, then update each generated `<slug>/outputs/.plans/<slug>-T<N>.md` brief with the actual assignment.
 - Use the unique research output paths emitted by the script, such as `<slug>/outputs/.drafts/<slug>-research-T1.md`.
 - Keep `task` tool prompts concise and valid.
 - Do not name exact tool commands in researcher tasks unless those tool names are visible in the current tool set.
 - Prefer broad guidance such as "use paper search and web search"; if a PDF parser or paper fetch fails, the researcher must continue from metadata, abstracts, and web sources and mark PDF parsing as blocked.
-- If the task tool or researcher agent is unavailable or fails, continue lead-owned with available search/fetch tools, record the degraded mode in the plan ledger, and proceed with a blocked or partial draft.
+- After researcher tasks return, immediately verify that each expected researcher output file exists and is non-empty.
+- If a researcher output file is missing or empty, make at most one recovery attempt for that track. If it is still missing, continue lead-owned with available search/fetch tools for that track, record the degraded mode in the plan ledger/search log/evidence matrix, and proceed with a partial evidence assessment.
+- If the task tool or researcher agent is unavailable, fails, times out, or remains incomplete near the soft budget, continue lead-owned with available search/fetch tools, record the degraded mode in the plan ledger, and proceed with a blocked or partial draft.
 - Require each researcher brief to include search angles, inclusion/exclusion criteria, and the assigned research output path. Each researcher output must include source decisions, an evidence table with stable source IDs, contradictions or missing evidence, and coverage status.
 
 Example task shape:
@@ -132,7 +149,7 @@ Example task shape:
 Use the task tool with subagent_type "researcher". Prompt the agent to read <slug>/outputs/.plans/<slug>-T1.md and write <slug>/outputs/.drafts/<slug>-research-T1.md. Ask it to return only a one-line completion summary.
 ```
 
-After the first evidence-gathering pass, perform a targeted gap pass before drafting: identify unanswered key questions, single-source critical claims, stale or low-quality sources, and contradictions. Run targeted follow-up searches or clearly record blocked gaps. After evidence gathering, update the plan ledger, search log, evidence matrix, and verification log. If research failed, record exactly what failed and proceed with a blocked or partial draft.
+After the first evidence-gathering pass, perform a targeted gap pass before drafting: identify unanswered key questions, single-source critical claims, stale or low-quality sources, and contradictions. Run targeted follow-up searches or clearly record blocked gaps. After evidence gathering, update the plan ledger, search log, evidence matrix, and verification log. If research failed or is incomplete, record exactly what failed and proceed with a blocked or partial draft rather than waiting indefinitely.
 
 ## Step 4: Draft
 
@@ -147,6 +164,7 @@ Include:
 - Evidence-backed caveats and disagreements
 - Open questions
 - Methods note summarizing search scope, source-selection defaults, and any degraded coverage
+- Partial evidence assessment when any planned track failed, timed out, or was lead-owned fallback
 - No invented sources, results, figures, benchmarks, images, charts, or tables
 
 Before citation, sweep the draft:
@@ -177,7 +195,8 @@ If direct search/no researcher agents was chosen:
 
 - Review the cited draft yourself.
 - Write `<slug>/outputs/.drafts/<slug>-verification.md` with FATAL / MAJOR / MINOR findings and the checks performed.
-- Include a quality checklist covering plan TODO removal, search-angle coverage, claim support, citation relevance/reachability, provenance completeness, and remaining caveats.
+- Include a quality checklist covering placeholder removal, search-angle coverage, claim support, citation relevance/reachability, provenance completeness, and remaining caveats.
+- Include a claim support sample of 5-10 critical claims mapped to source URLs or artifact paths with support status.
 - Fix FATAL issues before delivery.
 - Do not spawn the `reviewer` agent for simple direct-search runs.
 
@@ -185,7 +204,15 @@ If researcher agents were used, only after `<slug>/outputs/.drafts/<slug>-cited.
 
 Use the task tool with subagent_type `reviewer`. Ask the agent to verify `<slug>/outputs/.drafts/<slug>-cited.md`, flag unsupported claims, logical gaps, single-source critical claims, and overstated confidence, then write `<slug>/outputs/.drafts/<slug>-verification.md`.
 
-Whether review is self-owned or delegated, `<slug>/outputs/.drafts/<slug>-verification.md` must contain the model-owned quality decision: `Verification: PASS`, `Verification: PASS WITH NOTES`, or `Verification: BLOCKED`. This decision must be based on evidence quality and claim support, not on the script artifact check.
+Whether review is self-owned or delegated, `<slug>/outputs/.drafts/<slug>-verification.md` must contain the model-owned quality decision: `Verification: PASS`, `Verification: PASS WITH NOTES`, or `Verification: BLOCKED`. This decision must be based on evidence quality and claim support, not on the script artifact check. Before the final artifact-contract check runs, use `Artifact check: PENDING` in this verification file.
+
+Every verification file must include:
+
+- `Verification: PASS`, `Verification: PASS WITH NOTES`, or `Verification: BLOCKED`
+- `Artifact check: PENDING` before the final artifact-contract check, then `Artifact check: PASS` or `Artifact check: FAIL` after it runs
+- `Blocked checks:` with `none` or a concrete list
+- FATAL / MAJOR / MINOR findings
+- Claim support sample for direct runs, or reviewer findings for researcher-agent runs
 
 If the reviewer flags FATAL issues, fix them before delivery and run one more review pass. Note MAJOR issues in Open Questions. Accept MINOR issues.
 
@@ -197,7 +224,7 @@ The final candidate is `<slug>/outputs/.drafts/<slug>-revised.md` if it exists; 
 
 ## Step 7: Deliver
 
-Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh provenance --slug <slug> --dest outputs|papers --verification PASS|PASS_WITH_NOTES|BLOCKED`, using the model-owned quality verification status from `<slug>/outputs/.drafts/<slug>-verification.md`, then fill in the provenance details. Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh deliver --slug <slug> --dest outputs|papers` to copy the final candidate to:
+Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py provenance --slug <slug> --dest outputs|papers --verification PASS|PASS_WITH_NOTES|BLOCKED`, using the model-owned quality verification status from `<slug>/outputs/.drafts/<slug>-verification.md`, then fill in the provenance details with `Artifact check: PENDING`. Use `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py deliver --slug <slug> --dest outputs|papers` to copy the final candidate to:
 
 - `<slug>/papers/<slug>.md` for paper-style drafts
 - `<slug>/outputs/<slug>.md` for everything else
@@ -213,11 +240,11 @@ Write provenance next to it as `<slug>.provenance.md`:
 - **Sources accepted:** [count and/or list]
 - **Sources rejected:** [dead, unverifiable, or removed]
 - **Verification:** [PASS / PASS WITH NOTES / BLOCKED]
-- **Artifact check:** [PASS / FAIL]
+- **Artifact check:** [PENDING before final check, then PASS / FAIL]
 - **Plan:** <slug>/outputs/.plans/<slug>.md
 - **Research files:** [files used]
 ```
 
-Before responding, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.sh verify --slug <slug> --phase post-approval --dest outputs|papers` as the final artifact-contract check. If the artifact check fails, fix missing files when possible; otherwise set `Artifact check: FAIL`, set `Verification: BLOCKED` or `PASS WITH NOTES` as appropriate, and list the missing checks.
+Before responding, run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py verify --slug <slug> --phase post-approval --dest outputs|papers --allow-pending-artifact-check` as the pre-final artifact-contract check. If the artifact check passes, update both `<slug>/outputs/.drafts/<slug>-verification.md` and the provenance sidecar to `Artifact check: PASS`. If it fails and cannot be fixed, update both files to `Artifact check: FAIL`, set `Verification: BLOCKED` or `PASS WITH NOTES` as appropriate, and list the missing checks. Then run `.opencode/skills/deepresearch/scripts/deepresearch-artifacts.py verify --slug <slug> --phase post-approval --dest outputs|papers` again without the pending flag as the final artifact-contract check.
 
 Final response should be brief: link the final file, provenance file, and any blocked checks.
